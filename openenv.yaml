@@ -1,0 +1,22 @@
+version: "1.0"
+environment:
+  name: "TBD_Environment_Name"
+  description: "TBD_Description"
+  version: "0.1.0"
+  
+tasks:
+  - id: "task_1_easy"
+    description: "TBD"
+    difficulty: "easy"
+  - id: "task_2_medium"
+    description: "TBD"
+    difficulty: "medium"
+  - id: "task_3_hard"
+    description: "TBD"
+    difficulty: "hard"
+
+# Placeholder for your Pydantic schemas (will be auto-generated or linked later)
+schemas:
+  observation: "envs.models.Observation"
+  action: "envs.models.Action"
+  reward: "envs.models.Reward"
