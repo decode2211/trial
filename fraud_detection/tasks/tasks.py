@@ -1,5 +1,23 @@
 from typing import List, Set, Any
 import numpy as np
+import sqlite3
+import os
+import re
+
+def _build_medium_truth() -> set:
+    db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "db", "fraud.db")
+    conn = sqlite3.connect(db_path)
+    rows = conn.execute("""
+        SELECT a.account_id FROM accounts a
+        JOIN transactions t ON a.account_id = t.source_account_id
+        WHERE a.failed_logins > 3
+        GROUP BY a.account_id
+        HAVING MAX(t.amount) > 5000
+    """).fetchall()
+    conn.close()
+    return {r[0] for r in rows}
+
+MEDIUM_TRUTH = _build_medium_truth()
 
 # We define these classes to meet the requirements of ProgrammaticGrader, 
 # assuming OpenEnv's standard interface if available, or providing them locally.
@@ -33,7 +51,7 @@ def easy_task_grader(state: Any) -> float:
 
 def medium_task_grader(state: Any) -> float:
     # Ground truth for accounts with >3 failed logins and a transaction spike: A005, A010
-    truth = {"A005", "A010"}
+    truth = MEDIUM_TRUTH
     try:
         found = set()
         for line in state.sql_result.strip().split('\\n'):
@@ -60,23 +78,16 @@ def medium_task_grader(state: Any) -> float:
         return 0.0
 
 def hard_task_grader(state: Any) -> float:
-    # Ground truth layering chain: A040 -> A041 -> A042 -> A043 -> A044 -> A045
-    truth = {"A040", "A041", "A042", "A043", "A044", "A045"}
     try:
-        found = set()
-        import re
-        for line in state.sql_result.strip().split('\\n'):
-            matches = re.findall(r"A\d{3}", line)
-            found.update(matches)
-            
-        intersection = len(truth.intersection(found))
-        union = len(truth.union(found))
-        
-        if union == 0:
+        found = set(re.findall(r'A0\d{2}', state.sql_result))
+        truth = {"A040", "A041", "A042", "A043", "A044", "A045"}
+        if not found and not truth:
+            return 1.0
+        union = found | truth
+        if not union:
             return 0.0
-        # Jaccard similarity
-        return float(intersection / union)
-    except:
+        return len(found & truth) / len(union)
+    except Exception:
         return 0.0
 
 easy_task = Task(

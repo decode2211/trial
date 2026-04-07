@@ -1,22 +1,22 @@
-version: "1.0"
-environment:
-  name: "TBD_Environment_Name"
-  description: "TBD_Description"
-  version: "0.1.0"
-  
-tasks:
-  - id: "task_1_easy"
-    description: "TBD"
-    difficulty: "easy"
-  - id: "task_2_medium"
-    description: "TBD"
-    difficulty: "medium"
-  - id: "task_3_hard"
-    description: "TBD"
-    difficulty: "hard"
-
-# Placeholder for your Pydantic schemas (will be auto-generated or linked later)
-schemas:
-  observation: "envs.models.Observation"
-  action: "envs.models.Action"
-  reward: "envs.models.Reward"
+name: fraud_detection
+version: "1.0.0"
+description: "Financial fraud detection environment where an agent issues SQL queries to identify fraudulent transactions."
+action_space:
+  type: text
+  description: "A raw SQL SELECT query string targeting the fraud SQLite database."
+observation_space:
+  type: object
+  properties:
+    sql_result:
+      type: string
+      description: "Serialized result of the last SQL query."
+    fraud_signals:
+      type: array
+      items: {type: integer}
+      minItems: 10
+      maxItems: 10
+    step_count:
+      type: integer
+      minimum: 0
+      maximum: 50
+entrypoint: "fraud_detection/envs/core_env.py:FraudEnv"

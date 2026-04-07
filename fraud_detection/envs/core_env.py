@@ -3,6 +3,7 @@ from gymnasium import spaces
 import numpy as np
 from typing import Optional, Tuple, Dict, Any
 from .engine import FraudEngine, FraudState
+from .models import Observation, Action, Reward
 
 class FraudEnv(gym.Env):
     metadata = {"render_modes": ["human"]}
@@ -22,28 +23,27 @@ class FraudEnv(gym.Env):
         )
         self.action_space = spaces.Text(max_length=500)
         
-    def reset(self, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    def reset(self, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None) -> Tuple[Observation, dict]:
         super().reset(seed=seed)
         self.engine.reset()
         if self.render_mode == "human":
             self.render()
-        return self.engine._get_obs(), {}
+        obs = Observation(sql_result="", fraud_signals=[0]*10, step_count=0)
+        return obs, {}
         
-    def step(self, action: str) -> Tuple[Dict[str, Any], float, bool, bool, Dict[str, Any]]:
-        obs, reward, done, info = self.engine.step(action)
+    def step(self, action: Action) -> Tuple[Observation, float, bool, bool, dict]:
+        sql = action.sql if isinstance(action, Action) else action
+        obs_dict, reward, terminated, truncated, info = self.engine.step(sql)
         
-        truncated = False
-        if obs["step_count"] >= 49:
-            truncated = True
-            
         if self.render_mode == "human":
             self.render()
             
-        return obs, reward, done, truncated, info
+        obs = Observation(**obs_dict)
+        return obs, reward, terminated, truncated, info
         
-    def state(self) -> FraudState:
+    def state(self) -> dict:
         # Expected by constraints
-        return self.engine.state
+        return self.engine.state.model_dump()
         
     def render(self):
         if self.render_mode == "human":

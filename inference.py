@@ -1,4 +1,7 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 import sys
 import time
 import openai
@@ -8,20 +11,36 @@ from fraud_detection.tasks.tasks import TASKS
 def run_inference():
     start_time = time.time()
     
-    api_base_url = os.getenv("API_BASE_URL", "https://api.groq.com/openai/v1")
-    model_name = os.getenv("MODEL_NAME", "llama-3.1-8b-instant")
-    hf_token = os.getenv("GROQ_API_KEY", os.getenv("HF_TOKEN", "dummy_token"))
+    groq_key = os.getenv("GROQ_API_KEY")
+    openai_key = os.getenv("OPENAI_API_KEY")
+    
+    if "API_BASE_URL" in os.environ:
+        api_base_url = os.environ["API_BASE_URL"]
+        model_name = os.environ.get("MODEL_NAME", "llama-3.1-8b-instant")
+        token = groq_key or openai_key or os.getenv("HF_TOKEN", "dummy_token")
+    elif groq_key:
+        api_base_url = "https://api.groq.com/openai/v1"
+        model_name = os.getenv("MODEL_NAME", "llama-3.1-8b-instant")
+        token = groq_key
+    elif openai_key:
+        api_base_url = "https://api.openai.com/v1"
+        model_name = os.getenv("MODEL_NAME", "gpt-4o-mini")
+        token = openai_key
+    else:
+        api_base_url = "https://api.groq.com/openai/v1"
+        model_name = os.getenv("MODEL_NAME", "llama-3.1-8b-instant")
+        token = os.getenv("HF_TOKEN", "dummy_token")
     
     def check_timeout():
         if time.time() - start_time > 1200:
             print("Timeout exceeded 1200s.")
             sys.exit(1)
 
-    client = openai.OpenAI(base_url=api_base_url, api_key=hf_token, max_retries=0)
+    client = openai.OpenAI(base_url=api_base_url, api_key=token, max_retries=0)
     
     env = FraudEnv()
 
-    for task in TASKS[:1]:
+    for task in TASKS:
         check_timeout()
         print(f"[START] task={task.name} model={model_name}")
         
@@ -35,7 +54,7 @@ def run_inference():
             {"role": "system", "content": "You are a SQL agent analyzing a SQLite database for financial fraud. Tables are 'accounts' and 'transactions'. Output exactly one SQL query to execute. If you have the final answer in your previous observation, output exactly 'STOP'. Do not include markdown like ```sql or explanations."}
         ]
         
-        while not (done or truncated) and step_count < 5:
+        while not (done or truncated) and step_count < 50:
             check_timeout()
             
             obs_str = f"Task: {task.description}\\n"

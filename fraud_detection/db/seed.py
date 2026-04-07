@@ -73,7 +73,7 @@ def seed():
         insert_tx(src, dest, amount, 'TRANSFER', np.random.randint(0, 100))
 
     # EASY task: Find all transactions above $10,000 in the last 30 days
-    for _ in range(5):
+    for _ in range(10):
         src = np.random.choice(accounts)
         dest = np.random.choice([a for a in accounts if a != src])
         amount = round(np.random.uniform(10500, 20000), 2)
@@ -103,8 +103,24 @@ def seed():
         insert_tx(chain_accounts[i], chain_accounts[i+1], layer_amount, 'TRANSFER', 10 - i)
         layer_amount -= 50 # Small fee deduction at each step
         
+    EXPECTED_HIGH_VALUE_RECENT = 10
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT COUNT(*) FROM transactions 
+        WHERE amount > 10000 
+        AND timestamp >= DATE('now', '-30 days')
+    """)
+    count = cursor.fetchone()[0]
+
+    assert count == EXPECTED_HIGH_VALUE_RECENT, \
+        f"Seed produced {count} rows, grader expects {EXPECTED_HIGH_VALUE_RECENT}"
+
+    print(f"Seed verified: {count} high-value recent transactions found.")
+    
     conn.commit()
     conn.close()
+
+    
 
 if __name__ == "__main__":
     seed()
