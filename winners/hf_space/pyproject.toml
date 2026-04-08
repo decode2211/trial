@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fraud-detection"
+version = "1.0.0"
+description = "Financial Fraud Detection OpenEnv environment"
+requires-python = ">=3.8"
+dependencies = [
+    "gymnasium",
+    "pydantic>=2.0",
+    "openai",
+    "numpy",
+    "python-dotenv",
+    "openenv>=0.1.0",
+    "gradio",
+    "fastapi",
+    "uvicorn[standard]",
+]
+
+[project.scripts]
+server = "server.app:main"
+
+[project.optional-dependencies]
+dev = ["pytest", "black", "flake8"]
+
+[tool.setuptools]
+packages = ["fraud_detection"]
+
+[tool.setuptools.package-data]
+fraud_detection = ["db/*.db"]

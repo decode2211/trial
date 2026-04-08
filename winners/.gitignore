@@ -1,0 +1,17 @@
+.env
+.idea/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+output.txt
+.vscode/
+.DS_Store
+*.db-journal
