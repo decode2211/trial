@@ -16,4 +16,4 @@ COPY . .
 RUN pip install -e .
 
 # The judges will likely override this command, but it's good practice to have a default
-CMD ["python", "inference.py"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]

@@ -1,3 +1,14 @@
+---
+title: Fraud Detection
+emoji: 🔍
+colorFrom: red
+colorTo: blue
+sdk: docker
+pinned: false
+tags:
+  - openenv
+---
+
 # Financial Fraud Detection Environment (OpenEnv)
 
 ## 📌 Project Overview
