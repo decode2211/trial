@@ -23,23 +23,22 @@ class FraudEnv(gym.Env):
         )
         self.action_space = spaces.Text(max_length=500)
         
-    def reset(self, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None) -> Tuple[Observation, dict]:
+    def reset(self, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None) -> Tuple[Dict[str, Any], dict]:
         super().reset(seed=seed)
         self.engine.reset()
         if self.render_mode == "human":
             self.render()
-        obs = Observation(sql_result="", fraud_signals=[0]*10, step_count=0)
+        obs = {"sql_result": "", "fraud_signals": [0]*10, "step_count": 0}
         return obs, {}
         
-    def step(self, action: Action) -> Tuple[Observation, float, bool, bool, dict]:
+    def step(self, action: Action) -> Tuple[Dict[str, Any], float, bool, bool, dict]:
         sql = action.sql if isinstance(action, Action) else action
         obs_dict, reward, terminated, truncated, info = self.engine.step(sql)
         
         if self.render_mode == "human":
             self.render()
             
-        obs = Observation(**obs_dict)
-        return obs, reward, terminated, truncated, info
+        return obs_dict, reward, terminated, truncated, info
         
     def state(self) -> dict:
         # Expected by constraints

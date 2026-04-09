@@ -4,10 +4,6 @@ import sqlite3
 import os
 import re
 
-def clamp_score(score: float) -> float:
-    """Ensure score is strictly between 0 and 1 (not 0.0 or 1.0)"""
-    return max(0.001, min(0.999, float(score)))
-
 def _build_medium_truth() -> set:
     db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "db", "fraud.db")
     conn = sqlite3.connect(db_path)
@@ -46,7 +42,7 @@ def easy_task_grader(state: Any) -> float:
         sql_result = state.get('sql_result', '') if isinstance(state, dict) else state.sql_result
         # If it's empty or an error
         if not sql_result or "ERROR" in sql_result:
-            return clamp_score(0.0)
+            return 0.0
         
         # Count the number of dict-like structures (each row is a dict)
         # Count occurrences of 'transaction_id' which appears once per row
@@ -56,10 +52,9 @@ def easy_task_grader(state: Any) -> float:
             count = sql_result.count('"transaction_id":')
         
         # Return fraction of expected
-        score = min(count / expected, 1.0)
-        return clamp_score(score)
+        return min(count / expected, 1.0)
     except:
-        return clamp_score(0.0)
+        return 0.0
 
 def medium_task_grader(state: Any) -> float:
     # Ground truth for accounts with >3 failed logins and a transaction spike: A005, A010
@@ -82,15 +77,15 @@ def medium_task_grader(state: Any) -> float:
         fn = len(truth - found)
         
         if tp == 0:
-            return clamp_score(0.0)
+            return 0.0
         precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
         recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
         if precision + recall == 0:
-            return clamp_score(0.0)
+            return 0.0
         f1 = 2 * (precision * recall) / (precision + recall)
-        return clamp_score(f1)
+        return float(f1)
     except:
-        return clamp_score(0.0)
+        return 0.0
 
 def hard_task_grader(state: Any) -> float:
     try:
@@ -98,14 +93,13 @@ def hard_task_grader(state: Any) -> float:
         found = set(re.findall(r'A0\d{2}', sql_result))
         truth = {"A040", "A041", "A042", "A043", "A044", "A045"}
         if not found and not truth:
-            return clamp_score(1.0)
+            return 1.0
         union = found | truth
         if not union:
-            return clamp_score(0.0)
-        score = len(found & truth) / len(union)
-        return clamp_score(score)
+            return 0.0
+        return len(found & truth) / len(union)
     except Exception:
-        return clamp_score(0.0)
+        return 0.0
 
 easy_task = Task(
     name="EASY",

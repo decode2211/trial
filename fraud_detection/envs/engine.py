@@ -32,12 +32,12 @@ class FraudSignal(BaseModel):
     confidence: float
 
 class FraudState(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
     step_count: int
     sql_result: str
     query_history: List[str]
     fraud_signals: List[int]
-    discovered_markers: Set[str]
+    discovered_markers: Set[str] = set()
     
 class FraudEngine:
     def __init__(self):

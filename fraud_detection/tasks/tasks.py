@@ -35,17 +35,24 @@ class Task:
         self.grader = grader
 
 def easy_task_grader(state: Any) -> float:
-    # state is FraudState. We check sql_result.
+    # state is a dict from FraudState.model_dump()
     # Expecting about 10 transactions > 10000 
     expected = 10.0
     try:
-        # Simplistic parsing of state.sql_result to count rows
-        lines = state.sql_result.strip().split('\\n')
+        sql_result = state.get('sql_result', '') if isinstance(state, dict) else state.sql_result
         # If it's empty or an error
-        if not lines or "ERROR" in state.sql_result:
+        if not sql_result or "ERROR" in sql_result:
             return 0.0
+        
+        # Count the number of dict-like structures (each row is a dict)
+        # Count occurrences of 'transaction_id' which appears once per row
+        count = sql_result.count("'transaction_id':")
+        if count == 0:
+            # Try alternative format
+            count = sql_result.count('"transaction_id":')
+        
         # Return fraction of expected
-        return min(len(lines) / expected, 1.0)
+        return min(count / expected, 1.0)
     except:
         return 0.0
 
@@ -53,8 +60,9 @@ def medium_task_grader(state: Any) -> float:
     # Ground truth for accounts with >3 failed logins and a transaction spike: A005, A010
     truth = MEDIUM_TRUTH
     try:
+        sql_result = state.get('sql_result', '') if isinstance(state, dict) else state.sql_result
         found = set()
-        for line in state.sql_result.strip().split('\\n'):
+        for line in sql_result.strip().split('\n'):
             for acc in truth:
                 if acc in line:
                     found.add(acc)
@@ -70,8 +78,10 @@ def medium_task_grader(state: Any) -> float:
         
         if tp == 0:
             return 0.0
-        precision = tp / (tp + fp)
-        recall = tp / (tp + fn)
+        precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+        recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        if precision + recall == 0:
+            return 0.0
         f1 = 2 * (precision * recall) / (precision + recall)
         return float(f1)
     except:
@@ -79,7 +89,8 @@ def medium_task_grader(state: Any) -> float:
 
 def hard_task_grader(state: Any) -> float:
     try:
-        found = set(re.findall(r'A0\d{2}', state.sql_result))
+        sql_result = state.get('sql_result', '') if isinstance(state, dict) else state.sql_result
+        found = set(re.findall(r'A0\d{2}', sql_result))
         truth = {"A040", "A041", "A042", "A043", "A044", "A045"}
         if not found and not truth:
             return 1.0

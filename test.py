@@ -1,6 +1,6 @@
 import traceback
 try:
-    from antigravity.envs.core_env import FraudEnv
+    from fraud_detection.envs.core_env import FraudEnv
     env = FraudEnv(render_mode="human")
     obs, info = env.reset()
     print("Reset successful")

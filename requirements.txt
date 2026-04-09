@@ -4,5 +4,4 @@ openai
 numpy
 python-dotenv
 openenv>=0.1.0
-fastapi
-uvicorn
+gradio

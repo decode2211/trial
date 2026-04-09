@@ -7,7 +7,6 @@ WORKDIR /app
 # Copy the requirements file and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install openenv
 
 # Copy the rest of the project files
 COPY . .
@@ -15,5 +14,13 @@ COPY . .
 # Install the environment in editable mode
 RUN pip install -e .
 
-# The judges will likely override this command, but it's good practice to have a default
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
+# Expose the port for Gradio
+EXPOSE 7860
+
+# Set environment variables for Gradio
+ENV GRADIO_SERVER_NAME="0.0.0.0"
+ENV GRADIO_SERVER_PORT=7860
+
+# The default command runs the Gradio app for HF Spaces
+# For inference, judges will override with: python inference.py
+CMD ["python", "app.py"]
