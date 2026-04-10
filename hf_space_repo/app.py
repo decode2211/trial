@@ -9,6 +9,21 @@ import gradio as gr
 from fraud_detection.envs.core_env import FraudEnv
 from fraud_detection.tasks.tasks import TASKS
 import json
+import numpy as np
+
+def _json_safe(obj):
+    """Recursively convert numpy types to native Python types."""
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    if isinstance(obj, (np.integer,)):
+        return int(obj)
+    if isinstance(obj, (np.floating,)):
+        return float(obj)
+    if isinstance(obj, dict):
+        return {k: _json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_json_safe(i) for i in obj]
+    return obj
 
 # Create FastAPI app for OpenEnv compliance
 fastapi_app = FastAPI()
@@ -36,7 +51,7 @@ async def api_reset():
     global api_env
     api_env = FraudEnv()
     obs, info = api_env.reset()
-    return JSONResponse(content={"observation": obs, "info": info})
+    return JSONResponse(content={"observation": _json_safe(obs), "info": info})
 
 @fastapi_app.post("/step")
 async def api_step(request: StepRequest):
@@ -47,7 +62,7 @@ async def api_step(request: StepRequest):
     
     obs, reward, done, truncated, info = api_env.step(request.action)
     return JSONResponse(content={
-        "observation": obs,
+        "observation": _json_safe(obs),
         "reward": float(reward),
         "done": bool(done),
         "truncated": bool(truncated),
@@ -106,7 +121,7 @@ def step_environment(sql_query):
 def format_observation(obs):
     """Format observation for display."""
     if isinstance(obs, dict):
-        return json.dumps(obs, indent=2)
+        return json.dumps(_json_safe(obs), indent=2)
     return str(obs)
 
 

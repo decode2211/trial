@@ -135,8 +135,14 @@ class FraudEngine:
         
     def _get_obs(self) -> Dict[str, Any]:
         # Return observation suitable for core_env
+        fraud_signals = self.state.fraud_signals
+        # Convert ndarray to plain Python list for JSON serialization
+        if hasattr(fraud_signals, 'tolist'):
+            fraud_signals = fraud_signals.tolist()
+        else:
+            fraud_signals = [int(x) for x in fraud_signals]
         return {
-            "sql_result": self.state.sql_result[:1000], # Keep length in check
-            "fraud_signals": np.array(self.state.fraud_signals, dtype=np.int8),
-            "step_count": self.state.step_count
+            "sql_result": self.state.sql_result[:1000],
+            "fraud_signals": fraud_signals,
+            "step_count": int(self.state.step_count)
         }
