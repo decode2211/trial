@@ -44,7 +44,7 @@ The main Python package exposing the environment logic, database mockups, and an
 - **`tasks.py`**: Defines specific scenarios (`TASKS`) the model needs to solve, complete with grading criteria and prompt wrappers.
 
 #### Empty Directories
-- **`docs/`**: Reserved for further documentation.
+- **`docs/`**: Contains project documentation. See [`docs/README_OVERVIEW.md`](docs/README_OVERVIEW.md) for a summary of all README files across the project.
 - **`tests/`**: Reserved for expanded CI/CD unit testing.
 
 ---
